@@ -32,6 +32,7 @@ jobs:
               pm2 start 'npm run dev -- --port 3737' --name operator-os
 
             echo '── Hermes ──'
+            command -v pip3 &>/dev/null || apt install python3-pip -y -q
             cd /root/mygithubpage/hermes-server
             pip3 install -r requirements.txt -q
             if [ -f .env ]; then
