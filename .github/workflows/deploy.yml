@@ -33,10 +33,10 @@ jobs:
 
             echo '── Hermes ──'
             cd /root/mygithubpage/hermes-server
-            pip install -r requirements.txt -q
+            pip3 install -r requirements.txt -q
             if [ -f .env ]; then
               pm2 restart hermes 2>/dev/null || \
-                pm2 start 'python main.py' --name hermes
+                pm2 start main.py --interpreter python3 --name hermes
             else
               echo '⚠  hermes/.env not found — skipping hermes start'
             fi
