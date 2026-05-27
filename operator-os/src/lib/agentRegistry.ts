@@ -7,7 +7,7 @@ const DEFAULT_REGISTRY: Agent[] = [
   {
     id: "hermes",
     name: "Hermes",
-    url: "http://localhost:7777",
+    url: "https://agent.ryanmeza.com",
     chat_endpoint: "/chat",
     health_endpoint: "/health",
     color: "#8B5CF6",

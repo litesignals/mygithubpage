@@ -94,10 +94,20 @@ export async function POST(
           let content = text;
           try {
             const json = JSON.parse(text) as Record<string, unknown>;
+            // Handle multiple response shapes:
+            // { content } — our own format
+            // { message } — simple wrapper
+            // { response } — some agents
+            // { choices[0].message.content } — OpenAI-compatible
+            // { choices[0].text } — older OpenAI completions
+            const choices = json.choices as Array<Record<string, unknown>> | undefined;
             content =
               (json.content as string) ??
               (json.message as string) ??
               (json.response as string) ??
+              (json.text as string) ??
+              (choices?.[0]?.message as Record<string, unknown>)?.content as string ??
+              (choices?.[0]?.text as string) ??
               text;
           } catch {
             // plain text is fine
