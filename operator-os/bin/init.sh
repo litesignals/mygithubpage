@@ -8,14 +8,20 @@ AGENT_OS_HOME="${AGENT_OS_HOME:-$HOME/agent-os}"
 
 echo "🚀  Initializing Operator OS filesystem at: $AGENT_OS_HOME"
 
-# Create directory tree
 dirs=(
-  "$AGENT_OS_HOME/workspace/apps"
   "$AGENT_OS_HOME/workspace/studio/images"
   "$AGENT_OS_HOME/workspace/studio/videos"
   "$AGENT_OS_HOME/workspace/studio/voice"
-  "$AGENT_OS_HOME/workspace/scratch"
+  "$AGENT_OS_HOME/workspace/apps"
+  "$AGENT_OS_HOME/workspace/main"
+  "$AGENT_OS_HOME/workspace/julian"
+  "$AGENT_OS_HOME/workspace/marketing"
   "$AGENT_OS_HOME/workspace/skills"
+  "$AGENT_OS_HOME/workspace/goal-mode"
+  "$AGENT_OS_HOME/workspace/sandbox"
+  "$AGENT_OS_HOME/workspace/downloads"
+  "$AGENT_OS_HOME/workspace/pastes"
+  "$AGENT_OS_HOME/workspace/scratch"
   "$AGENT_OS_HOME/vault"
   "$AGENT_OS_HOME/sessions"
   "$AGENT_OS_HOME/config"
@@ -26,7 +32,6 @@ for d in "${dirs[@]}"; do
   echo "  ✓  $d"
 done
 
-# Seed config/agents.json only if it doesn't exist
 AGENTS_FILE="$AGENT_OS_HOME/config/agents.json"
 if [ ! -f "$AGENTS_FILE" ]; then
   cat > "$AGENTS_FILE" <<'JSON'
@@ -46,30 +51,26 @@ else
   echo "  ↩  $AGENTS_FILE  (already exists, skipped)"
 fi
 
-# Drop a sample scratch file so the Workspace tab has something to show
 SCRATCH="$AGENT_OS_HOME/workspace/scratch/welcome.md"
 if [ ! -f "$SCRATCH" ]; then
   cat > "$SCRATCH" <<'MD'
 # Welcome to Operator OS
 
-This is a scratch file created by `bin/init.sh`.
+This is your scratch space. Agents write here automatically.
 
-## Quick start
+## Buckets (13 total)
+- Studio: Images, Videos, Voice
+- Workspace: Apps, Main, Julian, Marketing, Skills
+- Agent: Goal Mode, Sandbox, Downloads, Pastes, Scratch
 
-1. Make sure an agent is running at the URL configured in `config/agents.json`
-2. Open http://localhost:3737
-3. Select your agent from the left rail
-4. Start chatting!
+## Vault
+Store Obsidian-style memory in ~/agent-os/vault/*.md
+Every agent reads this as context on each chat turn.
 MD
-  echo "  ✓  $SCRATCH  (sample scratch file)"
+  echo "  ✓  $SCRATCH"
 fi
 
 echo ""
-echo "✅  Scaffold complete."
+echo "✅  Scaffold complete — 13 buckets ready."
 echo ""
-echo "Next steps:"
-echo "  cd operator-os"
-echo "  npm install"
-echo "  npm run dev -- --port 3737"
-echo ""
-echo "Then open → http://localhost:3737"
+echo "Next: cd operator-os && npm install && npm run dev -- --port 3737"
