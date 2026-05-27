@@ -1,0 +1,24 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - claude/operator-os-dashboard-p0Z8n
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 2.24.125.19
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /root/mygithubpage
+            git pull origin claude/operator-os-dashboard-p0Z8n
+            cd operator-os
+            npm install --legacy-peer-deps
+            pm2 restart operator-os || pm2 start "npm run dev -- --port 3737" --name operator-os
+            echo "✅ Deployed at $(date)"
