@@ -9,17 +9,20 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to VPS
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: 2.24.125.19
-          username: root
-          key: ${{ secrets.VPS_SSH_KEY }}
-          fingerprint: AAAAB3NzaC1yc2EAAAADAQABAAABgQC9/rydGqarOSl4k3/hsTG2dKdkDmlB8n2WWkg/+roDx2GQJMQKXuQ22DVrn7+vexZn+k7uzj8GQjvQyIIzEHbDuEKBra7/qD9VjupXpT7Ogb9cjiK1Mik1dlI5ACNizRrbD7r0Zc5ae0+27fuRx/V89nj4ibc+DwBoeBUJpuFnJ0SBQY+2JkWjA4xBPQ5H5SLufSDKAlHinJBEb7D4frfAGQYbS1iWpfDaODog4A0QvnN4BQ9PoySiMPoaGsKqmvsyZiwe3Jb8Tvv4vl5U+vSz2KvHyW6+tg7y/KR25PdNU4crI29CZ4O5nrGeWEBgQlP/7VV4F2XULnoTLVdAdLryxgBnqkYz66Ij1FqypTdEAUpw0umi+w2qnH2Fsxgqfv5jeOGses0rDUwqk5WGaRsiDVJtOrvgN1f0gctMMIilyPuyLceX9Tzu7KnSPK+G6dRn3qjW1rnml1F+o1PXHKfXyXy3zcYHREZzpKUXZPbM3J6i9JsOFgUukSHgyZgFFWk=
-          script: |
-            cd /root/mygithubpage
-            git pull origin claude/operator-os-dashboard-p0Z8n
-            cd operator-os
-            npm install --legacy-peer-deps
-            pm2 restart operator-os || pm2 start "npm run dev -- --port 3737" --name operator-os
-            echo "✅ Deployed at $(date)"
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -t rsa 2.24.125.19 >> ~/.ssh/known_hosts
+
+      - name: Deploy
+        run: |
+          ssh root@2.24.125.19 "
+            cd /root/mygithubpage &&
+            git pull origin claude/operator-os-dashboard-p0Z8n &&
+            cd operator-os &&
+            npm install --legacy-peer-deps --silent &&
+            pm2 restart operator-os || pm2 start 'npm run dev -- --port 3737' --name operator-os &&
+            echo '✅ Deployed at \$(date)'
+          "
