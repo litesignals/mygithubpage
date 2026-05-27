@@ -32,12 +32,12 @@ jobs:
               pm2 start 'npm run dev -- --port 3737' --name operator-os
 
             echo '── Hermes ──'
-            command -v pip3 &>/dev/null || apt install python3-pip -y -q
             cd /root/mygithubpage/hermes-server
-            pip3 install -r requirements.txt -q
+            python3 -m venv .venv
+            .venv/bin/pip install -r requirements.txt -q
             if [ -f .env ]; then
               pm2 restart hermes 2>/dev/null || \
-                pm2 start main.py --interpreter python3 --name hermes
+                pm2 start main.py --interpreter .venv/bin/python3 --name hermes
             else
               echo '⚠  hermes/.env not found — skipping hermes start'
             fi
