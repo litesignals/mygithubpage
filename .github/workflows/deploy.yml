@@ -33,6 +33,7 @@ jobs:
 
             echo '── Hermes ──'
             cd /root/mygithubpage/hermes-server
+            apt install python3.12-venv -y -q
             python3 -m venv .venv
             .venv/bin/pip install -r requirements.txt -q
             if [ -f .env ]; then
