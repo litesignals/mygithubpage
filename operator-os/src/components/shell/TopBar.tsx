@@ -1,15 +1,16 @@
 "use client";
 
-import { MessageSquare, Image, FolderOpen, Activity } from "lucide-react";
+import { MessageSquare, Image, FolderOpen, Activity, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAgentContext } from "@/providers/AgentProvider";
 import type { Tab } from "./Shell";
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-  { id: "chat", label: "Chat", icon: MessageSquare },
-  { id: "studio", label: "Studio", icon: Image },
-  { id: "workspace", label: "Workspace", icon: FolderOpen },
-  { id: "control", label: "Control Room", icon: Activity },
+  { id: "chat",      label: "Chat",         icon: MessageSquare },
+  { id: "studio",    label: "Studio",       icon: Image },
+  { id: "workspace", label: "Workspace",    icon: FolderOpen },
+  { id: "control",   label: "Control Room", icon: Activity },
+  { id: "settings",  label: "Settings",     icon: Settings },
 ];
 
 interface TopBarProps {

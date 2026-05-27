@@ -21,10 +21,26 @@ jobs:
       - name: Deploy
         run: |
           ssh root@2.24.125.19 "
-            cd /root/mygithubpage &&
-            git pull origin claude/operator-os-dashboard-p0Z8n &&
-            cd operator-os &&
-            npm install --legacy-peer-deps --silent &&
-            pm2 restart operator-os || pm2 start 'npm run dev -- --port 3737' --name operator-os &&
+            set -e
+            cd /root/mygithubpage
+            git pull origin claude/operator-os-dashboard-p0Z8n
+
+            echo '── Operator OS ──'
+            cd /root/mygithubpage/operator-os
+            npm install --legacy-peer-deps --silent
+            pm2 restart operator-os 2>/dev/null || \
+              pm2 start 'npm run dev -- --port 3737' --name operator-os
+
+            echo '── Hermes ──'
+            cd /root/mygithubpage/hermes-server
+            pip install -r requirements.txt -q
+            if [ -f .env ]; then
+              pm2 restart hermes 2>/dev/null || \
+                pm2 start 'python main.py' --name hermes
+            else
+              echo '⚠  hermes/.env not found — skipping hermes start'
+            fi
+
+            pm2 save
             echo '✅ Deployed at \$(date)'
           "

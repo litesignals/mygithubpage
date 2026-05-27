@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
+import { Trash2 } from "lucide-react";
 import { useHealth } from "@/hooks/useHealth";
-import { timeAgo } from "@/lib/utils";
-import { cn } from "@/lib/utils";
+import { timeAgo, cn } from "@/lib/utils";
+import { useAgentContext } from "@/providers/AgentProvider";
 import type { Agent } from "@/lib/types";
 
 interface AgentRowProps {
@@ -13,15 +15,34 @@ interface AgentRowProps {
 
 export function AgentRow({ agent, isActive, onClick }: AgentRowProps) {
   const { data: health } = useHealth(agent.id);
+  const { triggerRefresh, setActiveAgent, agents } = useAgentContext();
+  const [deleting, setDeleting] = useState(false);
 
   const statusColor =
     health?.status === "online"
       ? "bg-emerald-400"
       : health?.status === "offline"
       ? "bg-red-500"
-      : "bg-zinc-500";
+      : "bg-zinc-500 animate-none";
 
   const isPulsing = health?.status === "online";
+
+  async function handleDelete(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!confirm(`Remove "${agent.name}"?`)) return;
+    setDeleting(true);
+    try {
+      await fetch(`/api/agents/${agent.id}`, { method: "DELETE" });
+      // Select another agent if this one was active
+      if (isActive) {
+        const next = agents.find((a) => a.id !== agent.id) ?? null;
+        setActiveAgent(next);
+      }
+      triggerRefresh();
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <button
@@ -50,6 +71,20 @@ export function AgentRow({ agent, isActive, onClick }: AgentRowProps) {
           </p>
         )}
       </div>
+
+      {/* Delete button — visible on hover */}
+      <span
+        onClick={handleDelete}
+        role="button"
+        aria-label="Remove agent"
+        className={cn(
+          "w-5 h-5 flex items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity",
+          "text-muted-foreground hover:text-destructive",
+          deleting && "opacity-100"
+        )}
+      >
+        <Trash2 className="w-3 h-3" />
+      </span>
 
       {/* Status dot */}
       <span

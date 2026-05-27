@@ -7,8 +7,9 @@ import { ChatTab } from "@/components/tabs/ChatTab";
 import { StudioTab } from "@/components/tabs/StudioTab";
 import { WorkspaceTab } from "@/components/tabs/WorkspaceTab";
 import { ControlRoomTab } from "@/components/tabs/ControlRoomTab";
+import { SettingsTab } from "@/components/tabs/SettingsTab";
 
-export type Tab = "chat" | "studio" | "workspace" | "control";
+export type Tab = "chat" | "studio" | "workspace" | "control" | "settings";
 
 export function Shell() {
   const [activeTab, setActiveTab] = useState<Tab>("chat");
@@ -26,7 +27,8 @@ export function Shell() {
           {activeTab === "chat" && <ChatTab />}
           {activeTab === "studio" && <StudioTab />}
           {activeTab === "workspace" && <WorkspaceTab />}
-          {activeTab === "control" && <ControlRoomTab />}
+          {activeTab === "control"  && <ControlRoomTab />}
+          {activeTab === "settings" && <SettingsTab />}
         </main>
       </div>
     </div>
