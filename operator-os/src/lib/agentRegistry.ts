@@ -7,10 +7,12 @@ const DEFAULT_REGISTRY: Agent[] = [
   {
     id: "hermes",
     name: "Hermes",
-    // Internal VPS address — no basic-auth proxy in the way
-    url: "http://127.0.0.1:9119",
+    // Hermes API Server (port 8642) — OpenAI-compatible, bearer-auth
+    url: "http://127.0.0.1:8642",
     chat_endpoint: "/v1/chat/completions",
     health_endpoint: "/health",
+    // 9119 = Hermes native dashboard — separate health check URL
+    health_url: "http://127.0.0.1:9119/api/status",
     color: "#8B5CF6",
     model: "deepseek-v4-flash",
   },

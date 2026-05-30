@@ -3,9 +3,12 @@
 export interface Agent {
   id: string;
   name: string;
+  /** Base URL for the chat API (e.g. http://127.0.0.1:8642) */
   url: string;
   chat_endpoint: string;
   health_endpoint: string;
+  /** Optional override: full URL for the health check (when different host/port from url) */
+  health_url?: string;
   color: string;
   model?: string;
   api_key?: string;

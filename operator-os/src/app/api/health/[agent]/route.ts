@@ -19,7 +19,7 @@ export async function GET(
     );
   }
 
-  const targetUrl = `${agent.url}${agent.health_endpoint}`;
+  const targetUrl = agent.health_url ?? `${agent.url}${agent.health_endpoint}`;
   const t0 = Date.now();
 
   try {

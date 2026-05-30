@@ -46,9 +46,10 @@ hermes_key = os.environ.get('HERMES_API_KEY', '')
 desired = {
   'id': 'hermes',
   'name': 'Hermes',
-  'url': 'http://127.0.0.1:9119',
+  'url': 'http://127.0.0.1:8642',        # API server — /v1/chat/completions
   'chat_endpoint': '/v1/chat/completions',
   'health_endpoint': '/health',
+  'health_url': 'http://127.0.0.1:9119/api/status',  # native dashboard health
   'color': '#8B5CF6',
   'model': 'deepseek-v4-flash',
   'api_key': hermes_key,
