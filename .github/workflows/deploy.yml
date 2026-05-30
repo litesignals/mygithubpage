@@ -1,0 +1,79 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - claude/operator-os-dashboard-p0Z8n
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH
+        env:
+          KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s' "$KEY" | tr -d ' \r\n' | base64 -d > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -t rsa 2.24.125.19 >> ~/.ssh/known_hosts
+
+      - name: Deploy
+        run: |
+          ssh root@2.24.125.19 "
+            set -e
+            cd /root/mygithubpage
+            git pull origin claude/operator-os-dashboard-p0Z8n
+
+            echo '── Operator OS ──'
+            cd /root/mygithubpage/operator-os
+            npm install --legacy-peer-deps --silent
+            pm2 restart operator-os 2>/dev/null || \
+              pm2 start 'npm run dev -- --port 3737' --name operator-os
+
+            echo '── Seed agent registry ──'
+            python3 - <<'EOF'
+import json, pathlib, os
+config_dir = pathlib.Path(os.path.expanduser('~/agent-os/config'))
+config_dir.mkdir(parents=True, exist_ok=True)
+f = config_dir / 'agents.json'
+
+desired = [{
+  'id': 'hermes',
+  'name': 'Hermes',
+  'url': 'http://127.0.0.1:9119',
+  'chat_endpoint': '/v1/chat/completions',
+  'health_endpoint': '/health',
+  'color': '#8B5CF6',
+  'model': 'gpt-5.4'
+}]
+
+if f.exists():
+    try:
+        existing = json.loads(f.read_text())
+        hermes = next((a for a in existing if a.get('id') == 'hermes'), None)
+        if hermes:
+            # Preserve any user customisations, just fix internal URL
+            if 'localhost:7777' in hermes.get('url', '') or hermes.get('url') == 'https://agent.ryanmeza.com':
+                hermes['url'] = 'http://127.0.0.1:9119'
+                hermes['chat_endpoint'] = '/v1/chat/completions'
+                hermes['model'] = hermes.get('model', 'gpt-5.4')
+                f.write_text(json.dumps(existing, indent=2))
+                print('Updated hermes URL to internal 127.0.0.1:9119')
+            else:
+                print('Agent registry looks good, no changes')
+        else:
+            existing.extend(desired)
+            f.write_text(json.dumps(existing, indent=2))
+            print('Added hermes entry')
+    except Exception as e:
+        print(f'Could not parse agents.json: {e}; overwriting')
+        f.write_text(json.dumps(desired, indent=2))
+else:
+    f.write_text(json.dumps(desired, indent=2))
+    print('Created agents.json with Hermes defaults')
+EOF
+
+            pm2 save
+            echo '✅ Deployed at \$(date)'
+          "
