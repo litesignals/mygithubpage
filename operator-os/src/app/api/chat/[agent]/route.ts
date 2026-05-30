@@ -45,14 +45,18 @@ export async function POST(
 
       try {
         // Send OpenAI-compatible request body
+        const upstreamHeaders: Record<string, string> = {
+          "Content-Type": "application/json",
+          Accept: "text/event-stream, application/json",
+        };
+        if (agent.api_key) {
+          upstreamHeaders["Authorization"] = `Bearer ${agent.api_key}`;
+        }
         const upstreamRes = await fetch(targetUrl, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "text/event-stream, application/json",
-          },
+          headers: upstreamHeaders,
           body: JSON.stringify({
-            model: agent.model ?? "gpt-5.4",
+            model: agent.model ?? "deepseek-v4-flash",
             messages: [{ role: "user", content: body.message }],
             stream: true,
             // Legacy fallback fields some agents expect

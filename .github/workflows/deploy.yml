@@ -19,11 +19,14 @@ jobs:
           ssh-keyscan -t rsa 2.24.125.19 >> ~/.ssh/known_hosts
 
       - name: Deploy
+        env:
+          HERMES_API_KEY: ${{ secrets.HERMES_API_KEY }}
         run: |
-          ssh root@2.24.125.19 "
+          ssh root@2.24.125.19 "HERMES_API_KEY='${HERMES_API_KEY}' bash -s" <<'REMOTE'
             set -e
             cd /root/mygithubpage
-            git pull origin claude/operator-os-dashboard-p0Z8n
+            git fetch origin claude/operator-os-dashboard-p0Z8n
+            git reset --hard origin/claude/operator-os-dashboard-p0Z8n
 
             echo '── Operator OS ──'
             cd /root/mygithubpage/operator-os
@@ -33,47 +36,46 @@ jobs:
 
             echo '── Seed agent registry ──'
             python3 - <<'EOF'
-import json, pathlib, os
+import json, pathlib, os, sys
 config_dir = pathlib.Path(os.path.expanduser('~/agent-os/config'))
 config_dir.mkdir(parents=True, exist_ok=True)
 f = config_dir / 'agents.json'
 
-desired = [{
+hermes_key = os.environ.get('HERMES_API_KEY', '')
+
+desired = {
   'id': 'hermes',
   'name': 'Hermes',
   'url': 'http://127.0.0.1:9119',
   'chat_endpoint': '/v1/chat/completions',
   'health_endpoint': '/health',
   'color': '#8B5CF6',
-  'model': 'gpt-5.4'
-}]
+  'model': 'deepseek-v4-flash',
+  'api_key': hermes_key,
+}
 
 if f.exists():
     try:
         existing = json.loads(f.read_text())
-        hermes = next((a for a in existing if a.get('id') == 'hermes'), None)
-        if hermes:
-            # Preserve any user customisations, just fix internal URL
-            if 'localhost:7777' in hermes.get('url', '') or hermes.get('url') == 'https://agent.ryanmeza.com':
-                hermes['url'] = 'http://127.0.0.1:9119'
-                hermes['chat_endpoint'] = '/v1/chat/completions'
-                hermes['model'] = hermes.get('model', 'gpt-5.4')
-                f.write_text(json.dumps(existing, indent=2))
-                print('Updated hermes URL to internal 127.0.0.1:9119')
-            else:
-                print('Agent registry looks good, no changes')
-        else:
-            existing.extend(desired)
+        if not isinstance(existing, list):
+            raise ValueError("not a list")
+        idx = next((i for i, a in enumerate(existing) if a.get('id') == 'hermes'), None)
+        if idx is not None:
+            existing[idx].update(desired)
             f.write_text(json.dumps(existing, indent=2))
-            print('Added hermes entry')
+            print('Updated Hermes entry')
+        else:
+            existing.append(desired)
+            f.write_text(json.dumps(existing, indent=2))
+            print('Added Hermes entry')
     except Exception as e:
-        print(f'Could not parse agents.json: {e}; overwriting')
-        f.write_text(json.dumps(desired, indent=2))
+        print(f'Re-creating agents.json: {e}')
+        f.write_text(json.dumps([desired], indent=2))
 else:
-    f.write_text(json.dumps(desired, indent=2))
+    f.write_text(json.dumps([desired], indent=2))
     print('Created agents.json with Hermes defaults')
 EOF
 
             pm2 save
-            echo '✅ Deployed at \$(date)'
-          "
+            echo "✅ Deployed at $(date)"
+REMOTE

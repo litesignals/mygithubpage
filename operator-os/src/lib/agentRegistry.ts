@@ -12,7 +12,7 @@ const DEFAULT_REGISTRY: Agent[] = [
     chat_endpoint: "/v1/chat/completions",
     health_endpoint: "/health",
     color: "#8B5CF6",
-    model: "gpt-5.4",
+    model: "deepseek-v4-flash",
   },
 ];
 

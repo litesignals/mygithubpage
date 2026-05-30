@@ -8,6 +8,7 @@ export interface Agent {
   health_endpoint: string;
   color: string;
   model?: string;
+  api_key?: string;
 }
 
 export type AgentStatus = "online" | "offline" | "unknown";
